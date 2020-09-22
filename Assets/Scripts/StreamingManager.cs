@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Unity.WebRTC;
 using System;
+using System.Numerics;
 
 public interface IConnectionTracker
 {
@@ -18,12 +19,16 @@ public class StreamingManager : MonoBehaviour, IConnectionTracker
     private Dictionary<int, List<MediaStreamTrack>> connections = new Dictionary<int, List<MediaStreamTrack>>();
     private Dictionary<int, GameObject> cameras = new Dictionary<int, GameObject>();
 
+    [SerializeField]
+    private GameObject playerPrefab;
+
     public int OnConnect()
     {
         int newConnectionID = 1;
         List<MediaStreamTrack> newTracks = new List<MediaStreamTrack>();
 
         //create camera prefab for new connection
+        var newPlayer = Instantiate(playerPrefab, UnityEngine.Vector3.zero, UnityEngine.Quaternion.identity);
         //route the controller for the camera
         //create track from camera and listener
         //add tracks to newTracks

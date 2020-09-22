@@ -124,6 +124,18 @@ namespace Unity.RenderStreaming
         [SerializeField]
         private UIController uiController = null;
 
+        [SerializeField]
+        private CharacterController controller;
+        [SerializeField]
+        private Animator anim;
+        [SerializeField]
+        private float allowPlayerRotation = 0.1f;
+
+        [SerializeField, Range(0, 1f)]
+        private float StartAnimTime = 0.3f;
+        [SerializeField, Range(0, 1f)]
+        private float StopAnimTime = 0.15f;
+
         readonly CameraState m_TargetCameraState = new CameraState();
         readonly CameraState m_InterpolatingCameraState = new CameraState();
         readonly CameraState m_InitialCameraState = new CameraState();
@@ -201,14 +213,6 @@ namespace Unity.RenderStreaming
             {
                 direction += Vector3.right;
             }
-            if (m_keyboard.qKey.isPressed)
-            {
-                direction += Vector3.down;
-            }
-            if (m_keyboard.eKey.isPressed)
-            {
-                direction += Vector3.up;
-            }
 
             // gamepad right stick control
             if (m_gamepad.rightStick != null)
@@ -224,36 +228,36 @@ namespace Unity.RenderStreaming
                 var activeTouches = touches.ToArray();
                 direction = GetTranslationFromInput((activeTouches[0].delta + activeTouches[1].delta) / 2f);
             }
-            else if (IsMouseDragged(m_mouse,true))
+
+            if (direction.sqrMagnitude > allowPlayerRotation)
             {
-                direction = GetTranslationFromInput(m_mouse.delta.ReadValue());
+                anim.SetFloat("Blend", direction.sqrMagnitude, StartAnimTime, Time.deltaTime);
             }
+            else if (direction.sqrMagnitude < allowPlayerRotation)
+            {
+                anim.SetFloat("Blend", direction.sqrMagnitude, StopAnimTime, Time.deltaTime);
+            }
+
             return direction;
         }
 
         void FixedUpdate()
         {
-            if (m_keyboard.uKey.isPressed)
-            {
-                ResetCamera();
-                return;
-            }
-
             var touches = m_screen.GetTouches();
 
             // Rotation 
-            if (IsMouseDragged(m_mouse,false))
-            {
-                UpdateTargetCameraStateFromInput(m_mouse.delta.ReadValue());
-            }
-            else if (touches.Count() == 1)
+            if (touches.Count() == 1)
             {
                 var activeTouches = touches.ToArray();
                 UpdateTargetCameraStateFromInput(activeTouches[0].delta);
             }
-            
+            else
+            {
+                UpdateTargetCameraStateFromInput(m_mouse.delta.ReadValue());
+            }
+
             // Rotation from joystick
-            if(m_gamepad.leftStick != null)
+            if (m_gamepad.leftStick != null)
                 UpdateTargetCameraStateFromInput(m_gamepad.leftStick.ReadValue());
             // Translation
             var translation = GetInputTranslationDirection() * Time.deltaTime;
@@ -261,7 +265,7 @@ namespace Unity.RenderStreaming
             // Speed up movement when shift key held
             if (m_keyboard.leftShiftKey.isPressed)
             {
-                translation *= 10.0f;
+                translation *= 1.7f;
             }
 
             translation *= Mathf.Pow(2.0f, boost);
@@ -276,31 +280,5 @@ namespace Unity.RenderStreaming
 
             m_InterpolatingCameraState.UpdateTransform(transform);
         }
-
-        void ResetCamera()
-        {
-            m_InitialCameraState.UpdateTransform(transform);
-            m_TargetCameraState.SetFromTransform(transform);
-            m_InterpolatingCameraState.SetFromTransform(transform);
-
-        }
-
-//---------------------------------------------------------------------------------------------------------------------
-        static bool IsMouseDragged(Mouse m, bool useLeftButton) {
-            if (null == m)
-                return false;
-
-            if (Screen.safeArea.Contains(m.position.ReadValue())) {
-                //check left/right click
-                if ((useLeftButton && m.leftButton.isPressed) || (!useLeftButton && m.rightButton.isPressed)) {               
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
     }
-
-
 }
