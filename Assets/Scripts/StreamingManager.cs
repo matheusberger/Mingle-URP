@@ -6,11 +6,11 @@ using System;
 
 public interface IConnectionTracker
 {
-    public int OnConnect();
-    public void OnDisconnect(int cid);
+    int OnConnect();
+    void OnDisconnect(int cid);
 
-    public int GetConnectionIDForTrack(MediaStreamTrack track);
-    public List<MediaStreamTrack> GetTracksForConnectionID(int cid);
+    int GetConnectionIDForTrack(MediaStreamTrack track);
+    List<MediaStreamTrack> GetTracksForConnectionID(int cid);
 }
 
 public class StreamingManager : MonoBehaviour, IConnectionTracker
