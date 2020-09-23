@@ -114,7 +114,11 @@ namespace Unity.RenderStreaming
         public void AddController(SimpleCameraController controller)
         {
             m_listController.Add(controller);
-            controller.SetInput(m_defaultInput);
+            if (!controller.hasInputBeenSet)
+            {
+                print("Adding input to this controller");
+                controller.SetInput(m_defaultInput);
+            }
         }
 
         public void RemoveController(SimpleCameraController controller)
@@ -245,12 +249,15 @@ namespace Unity.RenderStreaming
             channel.OnMessage = bytes => m_mapChannelAndRemoteInput[channel].ProcessInput(bytes);
             channel.OnClose = () => OnCloseChannel(channel);
 
-            // find controller that not assigned remote input
-            SimpleCameraController controller = m_listController
-                .FirstOrDefault(_controller => !m_remoteInputAndCameraController.ContainsValue(_controller));
+            // Instantiate prefab and create controller
+            GameObject gameObject = Instantiate(StreamingManager.Instance.playerPrefab, Vector3.zero, Quaternion.identity);
+            SimpleCameraController controller = gameObject.GetComponentInChildren<SimpleCameraController>();
 
             if(controller != null)
             {
+                print("SETTING INPUT FOR NEW CONTROLLER");
+                controller.enabled = true;
+                m_listController.Add(controller);
                 controller.SetInput(input);
                 m_remoteInputAndCameraController.Add(input, controller);
 

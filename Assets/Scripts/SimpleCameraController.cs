@@ -144,6 +144,8 @@ namespace Unity.RenderStreaming
         private Mouse m_mouse;
         private Touchscreen m_screen;
 
+        public bool hasInputBeenSet = false;
+
         public void SetInput(IInput input)
         {
             m_mouse = input.RemoteMouse;
@@ -151,11 +153,17 @@ namespace Unity.RenderStreaming
             m_screen = input.RemoteTouchscreen;
             m_gamepad = input.RemoteGamepad;
 
-            uiController.SetInput(input);
+            hasInputBeenSet = true;
+
+            if(uiController != null)
+            {
+                uiController.SetInput(input);
+            }
         }
 
         void OnEnable()
         {
+            Cursor.lockState = CursorLockMode.Locked;
             m_TargetCameraState.SetFromTransform(transform);
             m_InterpolatingCameraState.SetFromTransform(transform);
 
@@ -164,6 +172,7 @@ namespace Unity.RenderStreaming
 
         void OnDisable()
         {
+            Cursor.lockState = CursorLockMode.None;
             RenderStreaming.Instance?.RemoveController(this);
         }
 

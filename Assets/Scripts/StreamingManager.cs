@@ -17,12 +17,19 @@ public interface IConnectionTracker
 
 public class StreamingManager : MonoBehaviour, IConnectionTracker
 {
+    public static StreamingManager Instance { get; private set; }
+
     private Dictionary<int, List<MediaStreamTrack>> connections = new Dictionary<int, List<MediaStreamTrack>>();
     private Dictionary<int, GameObject> cameras = new Dictionary<int, GameObject>();
     private Dictionary<int, DefaultInput> remoteInputs = new Dictionary<int, DefaultInput>();
     
     [SerializeField]
-    private GameObject playerPrefab;
+    public GameObject playerPrefab;
+
+    private void Awake()
+    {
+        Instance = this;
+    }
 
     public int OnConnect()
     {
@@ -34,7 +41,7 @@ public class StreamingManager : MonoBehaviour, IConnectionTracker
         
         //route the controller for the camera
         var newInput = new DefaultInput();
-        var cameraController = newPlayer.GetComponent<CameraController>();
+        var cameraController = newPlayer.GetComponent<SimpleCameraController>();
         cameraController.SetInput(newInput);
         remoteInputs.Add(newConnectionID, newInput);
         
